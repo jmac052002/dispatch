@@ -1,31 +1,13 @@
 import anthropic
 import os
 from dotenv import load_dotenv
+from tools import get_cloudwatch_logs, get_github_workflow_logs, get_ecs_service_status, TOOL_DEFINITIONS 
 
 load_dotenv()
 
 client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 
-tools = [
-    {
-        "name": "get_cloudwatch_logs",
-        "description": "Fetches recent log events from a CloudWatch log group to help investigate incidents.",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "log_group": {
-                    "type": "string",
-                    "description": "The CloudWatch log group name to fetch logs from."
-                },
-                "minutes": {
-                    "type": "integer",
-                    "description": "How many minutes back to fetch logs from."
-                }
-            },
-            "required": ["log_group", "minutes"]
-        }
-    }
-]
+tools = TOOL_DEFINITIONS
 
 messages = [
     {
@@ -44,16 +26,22 @@ response = client.messages.create(
 print("Stop reason:", response.stop_reason)
 print("Response content:", response.content)
 
-def get_cloudwatch_logs(log_group: str, minutes: int) -> str:
-    # Mock response for now — real boto3 call comes in Phase 3
-    return f"[MOCK] Last {minutes} minutes of logs from {log_group}:\n2025-04-25 11:10:01 ERROR Connection timeout to database\n2025-04-25 11:10:45 ERROR Retry attempt 1 failed"
+def run_tool(tool_name: str, tool_input: dict) -> str:
+    if tool_name == "get_cloudwatch_logs":
+        return get_cloudwatch_logs(**tool_input)
+    elif tool_name == "get_github_workflow_logs":
+        return get_github_workflow_logs(**tool_input)
+    elif tool_name == "get_ecs_service_status":
+        return get_ecs_service_status(**tool_input)
+    else:
+        return f"Unknown tool: {tool_name}"
 
-tool_use_block = response.content[0]
-
-tool_result = get_cloudwatch_logs(
-    log_group=tool_use_block.input["log_group"],
-    minutes=tool_use_block.input["minutes"]
+tool_use_block = next(
+    block for block in response.content
+    if block.type == "tool_use"
 )
+
+tool_result = run_tool(tool_use_block.name, tool_use_block.input)
 
 messages.append({"role": "assistant", "content": response.content})
 messages.append({
