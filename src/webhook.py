@@ -5,6 +5,7 @@ from fastapi import FastAPI, Request, HTTPException, Header
 from mangum import Mangum 
 from dotenv import load_dotenv 
 from triage import run_triage
+from output import save_to_s3
 
 load_dotenv()
 
@@ -42,10 +43,18 @@ async def github_webhook(
         repo = event.get("repository", {}).get("full_name", "unknown")
         workflow = workflow_run.get("name", "unknown")
         run_id = workflow_run.get("id")
+        conclusion = workflow_run.get("conclusion")
 
         summary = run_triage(repo=repo, workflow=workflow, run_id=run_id)
-        print(f"Triage complete:\n{summary}")
-
+        key = save_to_s3(
+            summary=summary,
+            repo=repo,
+            workflow=workflow,
+            run_id=run_id,
+            conclusion=conclusion,
+        )
+        print(f"Triage saved to S3: {key}")
+    
     return {"status": "received"}
 
 handler = Mangum(app)
