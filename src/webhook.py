@@ -4,6 +4,7 @@ import os
 from fastapi import FastAPI, Request, HTTPException, Header
 from mangum import Mangum 
 from dotenv import load_dotenv 
+from triage import run_triage
 
 load_dotenv()
 
@@ -40,7 +41,10 @@ async def github_webhook(
     if workflow_run.get("conclusion") == "failure":
         repo = event.get("repository", {}).get("full_name", "unknown")
         workflow = workflow_run.get("name", "unknown")
-        print(f"Triage triggered — repo: {repo}, workflow: {workflow}")
+        run_id = workflow_run.get("id")
+
+        summary = run_triage(repo=repo, workflow=workflow, run_id=run_id)
+        print(f"Triage complete:\n{summary}")
 
     return {"status": "received"}
 
