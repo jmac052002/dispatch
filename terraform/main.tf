@@ -118,6 +118,7 @@ resource "aws_lambda_function" "dispatch" {
   image_uri     = "${aws_ecr_repository.dispatch.repository_url}:latest"
   timeout       = 300
   memory_size   = 512
+  architectures  = ["arm64"]
 
   environment {
     variables = {
