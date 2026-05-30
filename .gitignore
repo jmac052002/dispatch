@@ -5,3 +5,7 @@ __pycache__/
 start_mcp.sh
 venv/
 terraform/terraform.tfvars
+terraform/.terraform/
+terraform/.terraform.lock.hcl
+terraform/terraform.tfstate
+terraform/terraform.tfstate.backup
