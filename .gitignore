@@ -2,4 +2,6 @@
 __pycache__/
 *.pyc
 .venv/
-start_mcp.shvenv/
+start_mcp.sh
+venv/
+terraform/terraform.tfvars
