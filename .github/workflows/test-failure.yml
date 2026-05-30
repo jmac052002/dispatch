@@ -1,0 +1,9 @@
+name: test-triage-failure
+on: push
+
+jobs:
+  fail:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Intentional failure
+        run: exit 1
