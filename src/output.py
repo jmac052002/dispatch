@@ -20,15 +20,15 @@ def save_to_s3(
         workflow: Name of the failed workflow
         run_id: GitHub Actions workflow run ID
         conclusion: Workflow conclusion (e.g. 'failure')
-        bucket: S3 bucket name (defaults to TRIAGE_BUCKET env var)
+        bucket: S3 bucket name (defaults to S3_BUCKET env var)
 
     Returns:
         str: The S3 key the record was written to
     """
-    bucket_name = bucket or os.getenv("TRIAGE_BUCKET")
+    bucket_name = bucket or os.getenv("S3_BUCKET")
     if not bucket_name:
         raise EnvironmentError(
-            "S3 bucket not specified. Set TRIAGE_BUCKET environment variable."
+            "S3 bucket not specified. Set S3_BUCKET environment variable."
         )
 
     timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H-%M-%SZ")

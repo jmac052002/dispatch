@@ -1,9 +1,15 @@
-import boto3 
-import requests 
-import os 
+import logging
+import os
 from datetime import datetime, timezone, timedelta 
 
+import boto3 
+import requests 
+ 
+logger = logging.getLogger(__name__)
+
+
 def get_cloudwatch_logs(log_group: str, minutes: int) -> str:
+    logger.info("get_cloudwatch_logs called: log_group=%s, minutes=%s", log_group, minutes)
     client = boto3.client("logs", region_name="us-east-1")
     end_time = datetime.now(timezone.utc)
     start_time = end_time - timedelta(minutes=minutes)
@@ -33,9 +39,11 @@ def get_cloudwatch_logs(log_group: str, minutes: int) -> str:
     except client.exceptions.ResourceNotFoundException:
         return f"Log group {log_group} does not exist."
     except Exception as e:
+        logger.error("Error fetching logs: %s", str(e))
         return f"Error fetching logs: {str(e)}"
     
 def get_github_workflow_logs(repo: str, run_id: int) -> str:
+    logger.info("get_github_workflow_logs called: repo=%s, run_id=%s", repo, run_id) 
     token = os.getenv("GITHUB_TOKEN", "")
 
     if not token:
@@ -49,7 +57,7 @@ def get_github_workflow_logs(repo: str, run_id: int) -> str:
 
     try:
         run_url = f"https://api.github.com/repos/{repo}/actions/runs/{run_id}"
-        run_response = requests.get(run_url, headers=headers)
+        run_response = requests.get(run_url, headers=headers, timeout=10)
         run_response.raise_for_status()
         run_data = run_response.json()
 
@@ -60,7 +68,7 @@ def get_github_workflow_logs(repo: str, run_id: int) -> str:
         html_url = run_data.get("html_url", "")
 
         jobs_url = f"https://api.github.com/repos/{repo}/actions/runs/{run_id}/jobs"
-        jobs_response = requests.get(jobs_url, headers=headers)
+        jobs_response = requests.get(jobs_url, headers=headers, timeout=10)
         jobs_response.raise_for_status()
         jobs_data = jobs_response.json()
 
@@ -88,11 +96,14 @@ def get_github_workflow_logs(repo: str, run_id: int) -> str:
         return summary
 
     except requests.exceptions.HTTPError as e:
+        logger.error("GitHub API error: %s", str(e))
         return f"GitHub API error: {e.response.status_code} — {e.response.text}"
     except Exception as e:
+        logger.error("Error fetching workflow run: %s", str(e))
         return f"Error fetching workflow run: {str(e)}"
     
 def get_ecs_service_status(cluster: str, service: str) -> str:
+    logger.info("get_ecs_service_status called: cluster=%s, service=%s", cluster, service)
     client = boto3.client("ecs", region_name="us-east-1")
 
     try:
@@ -142,8 +153,10 @@ def get_ecs_service_status(cluster: str, service: str) -> str:
         return summary
 
     except client.exceptions.ClusterNotFoundException:
+        logger.error("Cluster not found: %s", cluster)
         return f"Cluster '{cluster}' not found."
     except Exception as e:
+        logger.error("Error fetching ECS service status: %s", str(e))
         return f"Error fetching ECS service status: {str(e)}"
     
 TOOL_DEFINITIONS = [
