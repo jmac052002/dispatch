@@ -126,7 +126,7 @@ resource "aws_lambda_function" "dispatch" {
       GITHUB_TOKEN      = var.github_token
       GITHUB_REPO       = var.github_repo
       WEBHOOK_SECRET    = var.webhook_secret
-      TRIAGE_BUCKET     = aws_s3_bucket.triage.bucket
+      S3_BUCKET         = aws_s3_bucket.triage.id
       AWS_ACCOUNT_ID    = var.aws_account_id
     }
   }
