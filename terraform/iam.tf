@@ -98,3 +98,17 @@ resource "aws_iam_role_policy" "dispatch" {
     ]
   })
 }
+
+resource "aws_iam_role_policy" "lambda_self_invoke" {
+  name = "dispatch-self-invoke"
+  role = aws_iam_role.lambda_exec.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect   = "Allow"
+      Action   = "lambda:InvokeFunction"
+      Resource = "arn:aws:lambda:us-east-1:${var.aws_account_id}:function:${var.project_name}"
+    }]
+  })
+} 

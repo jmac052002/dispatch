@@ -7,5 +7,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application source
 COPY src/ ./
 
-# Lambda handler entrypoint - points to handler = Mangum(app) in webhook.py
-CMD ["webhook.handler"]
+# Lambda handler entrypoint - routes webhook and async triage events 
+CMD ["lambda_handler.handler"]
