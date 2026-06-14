@@ -3,6 +3,7 @@ import logging
 from mangum import Mangum
 
 from output import save_to_s3
+from slack_output import post_to_slack 
 from triage import run_triage
 from webhook import app
 
@@ -31,6 +32,13 @@ def handler(event, context):
             run_id=run_id,
             conclusion=conclusion,
         )
+        post_to_slack(
+            summary=summary,
+            repo=repo,
+            workflow=workflow,
+            run_id=run_id,
+            conclusion=conclusion,
+       )
         logger.info("Async triage complete: %s", key)
         return {"status": "triaged", "key": key}
 

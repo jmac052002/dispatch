@@ -44,3 +44,9 @@ variable "webhook_secret" {
   type        = string
   sensitive   = true
 }
+
+variable "slack_webhook_url" {
+  description = "Slack incoming webhook URL for triage notifications"
+  type        = string
+  sensitive   = true
+} 

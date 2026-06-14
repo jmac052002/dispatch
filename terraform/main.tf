@@ -110,6 +110,15 @@ resource "aws_secretsmanager_secret_version" "webhook_secret" {
   secret_string = var.webhook_secret
 }
 
+resource "aws_secretsmanager_secret" "slack_webhook" {
+  name = "${var.project_name}/slack-webhook"
+}
+
+resource "aws_secretsmanager_secret_version" "slack_webhook" {
+  secret_id     = aws_secretsmanager_secret.slack_webhook.id
+  secret_string = var.slack_webhook_url
+}
+
 # --- Lambda function ---
 resource "aws_lambda_function" "dispatch" {
   function_name = var.project_name
@@ -128,6 +137,7 @@ resource "aws_lambda_function" "dispatch" {
       WEBHOOK_SECRET    = var.webhook_secret
       S3_BUCKET         = aws_s3_bucket.triage.id
       AWS_ACCOUNT_ID    = var.aws_account_id
+      SLACK_WEBHOOK_URL = var.slack_webhook_url
     }
   }
 
